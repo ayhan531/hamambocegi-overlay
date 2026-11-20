@@ -80,6 +80,7 @@
   #altyazi.kucuk{font-size:30px}
 
   #kademeler{position:absolute;left:0;right:0;bottom:12px;display:flex;justify-content:center;gap:8px;flex-wrap:wrap;pointer-events:none}
+  #kademeler .ipucu{border-color:#f5c542;color:#f5c542}
   #kademeler span{background:rgba(20,8,32,.82);border:1.5px solid #a46bff;color:#fff;border-radius:999px;padding:3px 9px;font-weight:700;font-size:13px}
   #not{position:absolute;left:0;right:0;bottom:70px;text-align:center;color:#fff;opacity:.7;font-size:13px;text-shadow:0 0 4px #000}
   #sesKilit{position:fixed;inset:auto 10px 10px auto;background:#e0245e;color:#fff;font-weight:800;padding:10px 14px;border-radius:10px;
@@ -102,7 +103,6 @@
   <div id="ust"><div id="isimEtiketi"><img id="avatar" alt=""><span id="isim"></span><span class="kademe" id="kademe"></span></div></div>
   <div id="sira"></div>
   <div id="altyazi"></div>
-  <div id="not">Eğlence amaçlıdır 🪳</div>
   <div id="kademeler"></div>
 </div>
 <div id="sesKilit">🔊 Sesi açmak için tıkla</div>
@@ -116,7 +116,7 @@ const SERVER = params.get('sunucu') || (YEREL ? '' : 'http://127.0.0.1:3000');
 const rel = (u) => String(u).replace(/^\//, '');
 const KANAL = params.get('kanal') || (YEREL ? '' : 'madamcitir-9b3f844a43c1');   // sesi panel çalacaksa overlay sessiz kalır
 const $ = (id) => document.getElementById(id);
-const VARSAYILAN_KADEME = [{ key: 'tek', min: 1, ad: 'Günün Kartı' }, { key: 'uc', min: 10, ad: 'Üçlü Tarot' }, { key: 'ask', min: 50, ad: 'Aşk Açılımı' }, { key: 'kariyer', min: 100, ad: 'Para & Kariyer' }, { key: 'hayat', min: 199, ad: 'Hayat Yolu' }, { key: 'genel', min: 499, ad: 'Büyük Genel Açılım' }];
+const VARSAYILAN_KADEME = [{ min: 1, ad: 'Günün Kartı', etiket: '🌹 Gül' }, { min: 10, ad: 'Üçlü Tarot', etiket: '🪙 10 jeton' }, { min: 50, ad: 'Aşk Açılımı', etiket: '🪙 50 jeton' }, { min: 100, ad: 'Para & Kariyer', etiket: '🪙 100 jeton' }, { min: 199, ad: 'Hayat Yolu', etiket: '🪙 199 jeton' }, { min: 499, ad: 'Büyük Genel Açılım', etiket: '🪙 499 jeton' }];
 let K = null, ws, curId = null, W = 768, H = 1344;
 
 // ---------- Karakteri kur ----------
@@ -325,7 +325,7 @@ function idle() {
 }
 function renderState(s) {
   const t = Array.isArray(s.tiers) ? s.tiers : VARSAYILAN_KADEME;
-  $('kademeler').innerHTML = t.map((x) => `<span>💎${x.min}+ ${x.ad}</span>`).join('');
+  $('kademeler').innerHTML = t.map((x) => `<span>${x.etiket || '🪙 ' + x.min + ' jeton'} → ${x.ad.replace(' Açılımı', '')}</span>`).join('') + '<span class="ipucu">Seri hediyeler toplanır · 10 Gül = Üçlü Tarot</span>';
   const n = (s.queue || []).length;
   $('sira').style.display = n ? 'block' : 'none';
   $('sira').textContent = `Sırada: ${n}`;
