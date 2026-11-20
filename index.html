@@ -7,8 +7,10 @@
 <style>
   :root{--altin:#f5c542;--mor:#6b2fbf}
   *{box-sizing:border-box}
-  html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000;font-family:"Segoe UI",system-ui,sans-serif}
+  html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#12060c;font-family:"Segoe UI",system-ui,sans-serif}
   #sahne{position:absolute;left:50%;top:50%;transform-origin:center center}
+  #arkaBulanik{position:fixed;inset:-40px;background-size:cover;background-position:center;filter:blur(28px) brightness(.55);display:none}
+  body.yatay #arkaBulanik{display:block}
   .katman{position:absolute;left:0;top:0;width:100%;height:100%}
   #karakter{transform-origin:50% 100%;animation:nefes 3.6s ease-in-out infinite}
   @keyframes nefes{0%,100%{transform:scale(1)}50%{transform:scale(1.006,1.003)}}
@@ -41,7 +43,7 @@
     border-radius:12px;padding:4px 10px;font-weight:800;font-size:18px;display:none}
 
   /* kartlar */
-  .kart{position:absolute;width:150px;height:258px;perspective:900px;pointer-events:none}
+  .kart{position:absolute;width:var(--w,150px);height:var(--h,258px);perspective:900px;pointer-events:none}
   .kart .ic{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .8s cubic-bezier(.3,1.3,.5,1);transform:rotateY(180deg)}
   .kart.ac .ic{transform:rotateY(0)}
   .kart .yuz,.kart .arka{position:absolute;inset:0;border-radius:12px;backface-visibility:hidden;box-shadow:0 12px 28px rgba(0,0,0,.7)}
@@ -52,7 +54,7 @@
   .kart .yuz{border:3px solid var(--altin);background:#f4ecd8;overflow:hidden}
   .kart .yuz img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
   .kart.ters .yuz img{transform:rotate(180deg)}
-  .kart .adEtiket{position:absolute;left:-30px;right:-30px;top:290px;text-align:center;color:var(--altin);font-weight:800;font-size:15px;
+  .kart .adEtiket{position:absolute;left:-30px;right:-30px;top:calc(var(--h,258px) + 6px + var(--fs,19px) * 1.25);text-align:center;color:var(--altin);font-weight:800;font-size:calc(var(--fs,19px) * .78);
     text-shadow:0 0 6px #000,0 0 3px #000;opacity:0;transition:opacity .4s .6s}
   .kart.ac .adEtiket{opacity:1}
     .kart .icerik{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:16px 8px 12px}
@@ -61,7 +63,7 @@
   .kart .sembol{font-size:62px;filter:drop-shadow(0 0 10px rgba(245,197,66,.7))}
   .kart .ad{background:linear-gradient(90deg,#b8862a,#f5d77a,#b8862a);color:#2a1638;font-weight:900;font-size:15px;line-height:1.1;
     padding:5px 6px;border-radius:5px;text-align:center;width:100%}
-  .kart .poz{position:absolute;left:-20px;right:-20px;top:266px;text-align:center;color:#fff;font-weight:900;font-size:19px;
+  .kart .poz{position:absolute;left:-20px;right:-20px;top:calc(var(--h,258px) + 6px);text-align:center;color:#fff;font-weight:900;font-size:var(--fs,19px);
     text-shadow:0 0 6px #000,0 0 3px #000;opacity:0;transition:opacity .4s .5s}
   .kart.ac .poz{opacity:1}
   .kart .tersChip{position:absolute;left:50%;top:-16px;transform:translateX(-50%);background:#c62828;color:#fff;font-weight:900;font-size:13px;
@@ -78,13 +80,14 @@
   #altyazi.kucuk{font-size:30px}
 
   #kademeler{position:absolute;left:0;right:0;bottom:12px;display:flex;justify-content:center;gap:8px;flex-wrap:wrap;pointer-events:none}
-  #kademeler span{background:rgba(20,8,32,.82);border:1.5px solid #a46bff;color:#fff;border-radius:999px;padding:4px 12px;font-weight:700;font-size:16px}
-  #not{position:absolute;left:0;right:0;bottom:46px;text-align:center;color:#fff;opacity:.7;font-size:13px;text-shadow:0 0 4px #000}
+  #kademeler span{background:rgba(20,8,32,.82);border:1.5px solid #a46bff;color:#fff;border-radius:999px;padding:3px 9px;font-weight:700;font-size:13px}
+  #not{position:absolute;left:0;right:0;bottom:70px;text-align:center;color:#fff;opacity:.7;font-size:13px;text-shadow:0 0 4px #000}
   #sesKilit{position:fixed;inset:auto 10px 10px auto;background:#e0245e;color:#fff;font-weight:800;padding:10px 14px;border-radius:10px;
     cursor:pointer;display:none;z-index:9;font-family:sans-serif}
 </style>
 </head>
 <body>
+<div id="arkaBulanik"></div>
 <div id="sahne">
   <div id="karakter" class="katman">
     <div class="resim" id="taban"></div>
@@ -108,12 +111,12 @@
 const params = new URLSearchParams(location.search);
 const SESSIZ = params.get('sessiz') === '1';
 // Sunucu adresi: overlay yerel sunucudan açıldıysa aynı adres, internetten (GitHub Pages) açıldıysa bilgisayardaki sunucu
-const YEREL = /^(localhost|127\.0\.0\.1|192\.168\.)/.test(location.hostname) && location.port === '3000';
+const YEREL = /^(localhost|127\.0\.0\.1|192\.168\.)/.test(location.hostname);
 const SERVER = params.get('sunucu') || (YEREL ? '' : 'http://127.0.0.1:3000');
 const rel = (u) => String(u).replace(/^\//, '');
 const KANAL = params.get('kanal') || (YEREL ? '' : 'madamcitir-9b3f844a43c1');   // sesi panel çalacaksa overlay sessiz kalır
 const $ = (id) => document.getElementById(id);
-const ETIKET = { tek: 'Tek kart', uc: '3 kart açılımı', profil: '3 kart + hesap yorumu' };
+const VARSAYILAN_KADEME = [{ key: 'tek', min: 1, ad: 'Günün Kartı' }, { key: 'uc', min: 10, ad: 'Üçlü Tarot' }, { key: 'ask', min: 50, ad: 'Aşk Açılımı' }, { key: 'kariyer', min: 100, ad: 'Para & Kariyer' }, { key: 'hayat', min: 199, ad: 'Hayat Yolu' }, { key: 'genel', min: 499, ad: 'Büyük Genel Açılım' }];
 let K = null, ws, curId = null, W = 768, H = 1344;
 
 // ---------- Karakteri kur ----------
@@ -122,7 +125,7 @@ async function kur() {
   W = K.genislik; H = K.yukseklik;
   const sahne = $('sahne');
   sahne.style.width = W + 'px'; sahne.style.height = H + 'px';
-  for (const id of ['taban', 'cene', 'el']) $(id).style.backgroundImage = `url(${rel(K.resim)})`;
+  for (const id of ['taban', 'cene', 'el', 'arkaBulanik']) $(id).style.backgroundImage = `url(${rel(K.resim)})`;
   const poly = (pts) => `polygon(${pts.map(([x, y]) => `${(x / W) * 100}% ${(y / H) * 100}%`).join(',')})`;
   $('cene').style.clipPath = poly(K.cene.poligon);
   $('el').style.clipPath = poly(K.el.poligon);
@@ -137,7 +140,10 @@ async function kur() {
   kirpLoop();
 }
 function olcekle() {
-  const s = Math.max(innerWidth / W, innerHeight / H);
+  // dikey ekranda ekranı doldur, yatay/kare ekranda tamamı görünsün
+  const yatay = innerWidth / innerHeight > 0.7;
+  document.body.classList.toggle('yatay', yatay);
+  const s = yatay ? Math.min(innerWidth / W, innerHeight / H) : Math.max(innerWidth / W, innerHeight / H);
   $('sahne').style.transform = `translate(-50%,-50%) scale(${s})`;
 }
 function kirpLoop() {
@@ -183,9 +189,22 @@ function agizDongu() {
 }
 
 // ---------- Kartları elle çekme ----------
+function boyut(n) {
+  if (n <= 3) return { w: 150, h: 258, fs: 19, gap: 40 };
+  if (n <= 5) return { w: 118, h: 203, fs: 15, gap: 22 };
+  return { w: 104, h: 179, fs: 13, gap: 18 };
+}
 function slotlar(n) {
-  if (n === 1) return [[W / 2 - 75, 92]];
-  return [[W / 2 - 75 - 190, 110], [W / 2 - 75, 92], [W / 2 - 75 + 190, 110]];
+  const b = boyut(n);
+  const satirlar = n <= 5 ? [n] : [4, n - 4];
+  const out = [];
+  satirlar.forEach((k, r) => {
+    const top = 80 + r * (b.h + b.fs * 2.6 + 18);
+    const genislik = k * b.w + (k - 1) * b.gap;
+    const x0 = (W - genislik) / 2;
+    for (let i = 0; i < k; i++) out.push([x0 + i * (b.w + b.gap), top + (n === 3 && i !== 1 ? 18 : 0)]);
+  });
+  return out;
 }
 function kartHTML(c, pos) {
   return `<div class="ic"><div class="arka"></div><div class="yuz"><img src="kartlar/${c.id}.jpg" alt=""></div></div>
@@ -205,13 +224,15 @@ function kartlariCek(cards) {
   const sl = slotlar(cards.length);
   const [sx, sy] = K.el.kartBaslangic;
   cards.forEach((c, i) => {
-    const pos = cards.length === 3 ? ['Geçmiş', 'Şimdi', 'Gelecek'][i] : 'Senin kartın';
+    const pos = c.pozisyon || (cards.length === 3 ? ['Geçmiş', 'Şimdi', 'Gelecek'][i] : 'Senin kartın');
+    const b = boyut(cards.length);
     const el = document.createElement('div');
     el.className = 'kart' + (c.reversed ? ' ters' : '');
     el.style.left = sl[i][0] + 'px'; el.style.top = sl[i][1] + 'px'; el.style.opacity = 0;
+    el.style.setProperty('--w', b.w + 'px'); el.style.setProperty('--h', b.h + 'px'); el.style.setProperty('--fs', b.fs + 'px');
     el.innerHTML = kartHTML(c, pos);
     kap.appendChild(el);
-    const dx = sx - (sl[i][0] + 75), dy = sy - (sl[i][1] + 129);
+    const dx = sx - (sl[i][0] + b.w / 2), dy = sy - (sl[i][1] + b.h / 2);
     setTimeout(() => {
       elCek();
       setTimeout(() => {
@@ -223,7 +244,7 @@ function kartlariCek(cards) {
         ], { duration: 1050, easing: 'cubic-bezier(.2,.8,.3,1)' });
         setTimeout(() => el.classList.add('ac'), 1150);
       }, 330);
-    }, 250 + i * 1650);
+    }, 250 + i * (cards.length > 3 ? 1150 : 1650));
   });
 }
 
@@ -261,7 +282,7 @@ function thinking(job, cards) {
   try { audio.pause(); } catch {}
   document.body.classList.add('dusunuyor');
   $('isim').textContent = job.nickname;
-  $('kademe').textContent = ETIKET[job.tier] || '';
+  $('kademe').textContent = job.spreadAd || '';
   const av = $('avatar'); if (job.avatar) { av.src = job.avatar; av.style.display = 'block'; } else av.style.display = 'none';
   $('isimEtiketi').classList.add('goster');
   $('altyazi').className = 'kucuk';
@@ -303,9 +324,9 @@ function idle() {
   setTimeout(() => { if (!yazi) $('kartlar').innerHTML = ''; }, 600);
 }
 function renderState(s) {
-  const t = s.tiers;
-  $('kademeler').innerHTML = `<span>💎${t.min}+ tek kart</span><span>💎${t.uc}+ 3 kart</span><span>💎${t.profil}+ 3 kart + hesap yorumu</span>`;
-  const n = s.queue.length;
+  const t = Array.isArray(s.tiers) ? s.tiers : VARSAYILAN_KADEME;
+  $('kademeler').innerHTML = t.map((x) => `<span>💎${x.min}+ ${x.ad}</span>`).join('');
+  const n = (s.queue || []).length;
   $('sira').style.display = n ? 'block' : 'none';
   $('sira').textContent = `Sırada: ${n}`;
 }
@@ -317,7 +338,7 @@ function mesaj(m) {
   if (m.type === 'idle') idle();
 }
 function kanalBaglan() {
-  renderState({ tiers: { min: 1, uc: 99, profil: 299 }, queue: [] });
+  renderState({ tiers: VARSAYILAN_KADEME, queue: [] });
   const es = new EventSource(`https://ntfy.sh/${KANAL}/sse`);
   es.onmessage = (e) => { try { const d = JSON.parse(e.data); if (d.event === 'message' && d.message) mesaj(JSON.parse(d.message)); } catch {} };
 }
