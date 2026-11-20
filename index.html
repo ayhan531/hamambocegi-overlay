@@ -33,13 +33,13 @@
   @keyframes kure{from{filter:brightness(.8)}to{filter:brightness(1.5)}}
 
   /* üst bilgi */
-  #ust{position:absolute;left:0;right:0;top:72px;text-align:center;pointer-events:none}
+  #ust{position:absolute;left:0;right:0;top:92px;text-align:center;pointer-events:none}
   #isimEtiketi{max-width:92%;overflow:hidden;white-space:nowrap;display:inline-flex;align-items:center;gap:10px;background:rgba(20,8,32,.82);border:2px solid var(--altin);
-    border-radius:999px;padding:6px 18px 6px 6px;color:#fff;font-weight:800;font-size:24px;opacity:0;transform:translateY(-20px);transition:all .4s}
+    border-radius:999px;padding:8px 20px 8px 8px;color:#fff;font-weight:900;font-size:27px;opacity:0;transform:translateY(-20px);transition:all .4s}
   #isimEtiketi.goster{opacity:1;transform:none}
   #isimEtiketi img{width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid var(--altin);display:none}
   #isimEtiketi .kademe{font-size:15px;background:var(--mor);border-radius:999px;padding:3px 10px}
-  #sira{position:absolute;right:14px;top:118px;background:rgba(20,8,32,.85);color:var(--altin);border:2px solid var(--altin);
+  #sira{position:absolute;right:14px;top:96px;background:rgba(20,8,32,.85);color:var(--altin);border:2px solid var(--altin);
     border-radius:12px;padding:4px 10px;font-weight:800;font-size:18px;display:none}
 
   /* kartlar */
@@ -79,11 +79,28 @@
   #altyazi .k.simdi{background:#e0245e;-webkit-text-stroke:0;text-shadow:none;box-shadow:0 0 0 3px #fff inset,0 4px 0 #000}
   #altyazi.kucuk{font-size:30px}
 
-  #kademeler{position:absolute;left:8px;right:8px;top:8px;display:flex;justify-content:center;gap:8px;flex-wrap:wrap;pointer-events:none}
-  #kademeler .ipucu{border-color:#f5c542;color:#f5c542}
-  #kademeler span{background:rgba(20,8,32,.85);border:1.5px solid #a46bff;color:#fff;border-radius:999px;padding:3px 8px;font-weight:700;font-size:12.5px;white-space:nowrap}
-  #kademeler{gap:5px !important}
   #not{position:absolute;left:0;right:0;bottom:70px;text-align:center;color:#fff;opacity:.7;font-size:13px;text-shadow:0 0 4px #000}
+
+  /* ---- Hediye menüsü (boşta görünür) ---- */
+  #menu{position:absolute;left:18px;right:18px;top:96px;transition:opacity .45s, transform .45s;pointer-events:none}
+  body.aktif #menu{opacity:0;transform:translateY(-24px)}
+  #menu .baslik{text-align:center;margin-bottom:12px;font-family:"Arial Black","Segoe UI Black",Impact,sans-serif;font-size:34px;
+    color:#fff;letter-spacing:.5px;-webkit-text-stroke:2px #000;paint-order:stroke fill;text-shadow:0 4px 0 #000,0 0 18px rgba(245,197,66,.55)}
+  #menu .baslik b{color:#f5c542}
+  #menu .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  #menu .kutu{position:relative;border-radius:18px;padding:12px 6px 10px;text-align:center;
+    background:linear-gradient(180deg,rgba(40,14,70,.92),rgba(16,6,30,.92));border:2.5px solid rgba(245,197,66,.85);
+    box-shadow:0 6px 0 rgba(0,0,0,.55),0 0 18px rgba(164,107,255,.35) inset}
+  #menu .kutu.vip{border-color:#ff4d8d;background:linear-gradient(180deg,rgba(110,14,60,.95),rgba(40,6,24,.95));box-shadow:0 6px 0 rgba(0,0,0,.55),0 0 22px rgba(255,77,141,.6)}
+  #menu .ikon{font-size:46px;line-height:1;filter:drop-shadow(0 3px 0 rgba(0,0,0,.6))}
+  #menu .ad{margin-top:6px;font-family:"Arial Black","Segoe UI Black",Impact,sans-serif;font-size:19px;line-height:1.05;color:#fff;
+    text-transform:uppercase;-webkit-text-stroke:1.2px #000;paint-order:stroke fill;text-shadow:0 2px 0 #000}
+  #menu .fiyat{display:inline-block;margin-top:7px;padding:3px 10px;border-radius:999px;background:#f5c542;color:#1b0f2a;
+    font-weight:900;font-size:15px;box-shadow:0 2px 0 rgba(0,0,0,.5)}
+  #menu .kutu.vip .fiyat{background:#ff4d8d;color:#fff}
+  #menu .not{margin-top:10px;text-align:center;font-weight:900;font-size:17px;color:#fff;-webkit-text-stroke:1px #000;paint-order:stroke fill;
+    text-shadow:0 2px 0 #000}
+  #menu .not b{color:#f5c542}
   #sesKilit{position:fixed;inset:auto 10px 10px auto;background:#e0245e;color:#fff;font-weight:800;padding:10px 14px;border-radius:10px;
     cursor:pointer;display:none;z-index:9;font-family:sans-serif}
 </style>
@@ -104,7 +121,7 @@
   <div id="ust"><div id="isimEtiketi"><img id="avatar" alt=""><span id="isim"></span><span class="kademe" id="kademe"></span></div></div>
   <div id="sira"></div>
   <div id="altyazi"></div>
-  <div id="kademeler"></div>
+  <div id="menu"></div>
 </div>
 <div id="sesKilit">🔊 Sesi açmak için tıkla</div>
 
@@ -117,7 +134,9 @@ const SERVER = params.get('sunucu') || (YEREL ? '' : 'http://127.0.0.1:3000');
 const rel = (u) => String(u).replace(/^\//, '');
 const KANAL = params.get('kanal') || (YEREL ? '' : 'madamcitir-9b3f844a43c1');   // sesi panel çalacaksa overlay sessiz kalır
 const $ = (id) => document.getElementById(id);
-const VARSAYILAN_KADEME = [{ min: 1, ad: 'Günün Kartı', etiket: '🌹 Gül' }, { min: 10, ad: 'Üçlü Tarot', etiket: '🪙 10 jeton' }, { min: 50, ad: 'Aşk Açılımı', etiket: '🪙 50 jeton' }, { min: 100, ad: 'Para & Kariyer', etiket: '🪙 100 jeton' }, { min: 199, ad: 'Hayat Yolu', etiket: '🪙 199 jeton' }, { min: 499, ad: 'Büyük Genel Açılım', etiket: '🪙 499 jeton' }];
+const IKON = { tek: '🌹', uc: '🔮', ask: '💘', kariyer: '💰', hayat: '🌙', genel: '👑' };
+const KISA = { tek: 'Günün Kartı', uc: 'Üçlü Tarot', ask: 'Aşk Falı', kariyer: 'Para Falı', hayat: 'Hayat Yolu', genel: 'Büyük Açılım' };
+const VARSAYILAN_KADEME = [{ key: 'tek', min: 1 }, { key: 'uc', min: 10 }, { key: 'ask', min: 50 }, { key: 'kariyer', min: 100 }, { key: 'hayat', min: 199 }, { key: 'genel', min: 499 }];
 let K = null, ws, curId = null, W = 768, H = 1344;
 
 // ---------- Karakteri kur ----------
@@ -192,15 +211,15 @@ function agizDongu() {
 // ---------- Kartları elle çekme ----------
 function boyut(n) {
   if (n <= 3) return { w: 150, h: 258, fs: 19, gap: 40 };
-  if (n <= 5) return { w: 118, h: 203, fs: 15, gap: 22 };
-  return { w: 104, h: 179, fs: 13, gap: 18 };
+  if (n <= 5) return { w: 118, h: 203, fs: 17, gap: 22 };
+  return { w: 104, h: 179, fs: 15, gap: 18 };
 }
 function slotlar(n) {
   const b = boyut(n);
   const satirlar = n <= 5 ? [n] : [4, n - 4];
   const out = [];
   satirlar.forEach((k, r) => {
-    const top = 130 + r * (b.h + b.fs * 2.6 + 14);
+    const top = 150 + r * (b.h + b.fs * 2.6 + 14);
     const genislik = k * b.w + (k - 1) * b.gap;
     const x0 = (W - genislik) / 2;
     for (let i = 0; i < k; i++) out.push([x0 + i * (b.w + b.gap), top + (n === 3 && i !== 1 ? 18 : 0)]);
@@ -284,7 +303,7 @@ function altyaziGuncelle() {
 function thinking(job, cards) {
   curId = job.id; yazi = null; sahteKonusma = false;
   try { audio.pause(); } catch {}
-  document.body.classList.add('dusunuyor');
+  document.body.classList.add('dusunuyor', 'aktif');
   $('isim').textContent = job.nickname;
   $('kademe').textContent = job.spreadAd || '';
   const av = $('avatar'); if (job.avatar) { av.src = job.avatar; av.style.display = 'block'; } else av.style.display = 'none';
@@ -321,15 +340,20 @@ function bitti(id) { if (ws && ws.readyState === 1 && !KANAL) ws.send(JSON.strin
 function idle() {
   yazi = null; sahteKonusma = false;
   try { audio.pause(); } catch {}
-  document.body.classList.remove('dusunuyor');
+  document.body.classList.remove('dusunuyor', 'aktif');
   $('isimEtiketi').classList.remove('goster');
   $('altyazi').innerHTML = '';
   document.querySelectorAll('.kart').forEach((k) => k.classList.add('git'));
   setTimeout(() => { if (!yazi) $('kartlar').innerHTML = ''; }, 600);
 }
+let menuCizildi = '';
 function renderState(s) {
-  const t = Array.isArray(s.tiers) ? s.tiers : VARSAYILAN_KADEME;
-  $('kademeler').innerHTML = t.map((x) => `<span>${x.etiket || '🪙 ' + x.min + ' jeton'} → ${x.ad.replace(' Açılımı', '')}</span>`).join('') + '<span class="ipucu">Seri hediyeler toplanır · 10 Gül = Üçlü Tarot</span>';
+  const t = Array.isArray(s.tiers) && s.tiers[0] && s.tiers[0].key ? s.tiers : VARSAYILAN_KADEME;
+  const html = `<div class="baslik">HEDİYE AT, <b>FALINA BAKAYIM</b></div><div class="grid">` +
+    t.map((x) => `<div class="kutu${x.key === 'genel' ? ' vip' : ''}"><div class="ikon">${IKON[x.key] || '🔮'}</div>
+      <div class="ad">${KISA[x.key] || x.ad}</div><div class="fiyat">${x.key === 'tek' ? 'GÜL · 1 jeton' : x.min + ' jeton'}</div></div>`).join('') +
+    `</div><div class="not">Seri hediyeler toplanır · <b>10 Gül = Üçlü Tarot</b></div>`;
+  if (html !== menuCizildi) { $('menu').innerHTML = html; menuCizildi = html; }
   const n = (s.queue || []).length;
   $('sira').style.display = n ? 'block' : 'none';
   $('sira').textContent = `Sırada: ${n}`;
