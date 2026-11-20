@@ -110,7 +110,8 @@ const SESSIZ = params.get('sessiz') === '1';
 // Sunucu adresi: overlay yerel sunucudan açıldıysa aynı adres, internetten (GitHub Pages) açıldıysa bilgisayardaki sunucu
 const YEREL = /^(localhost|127\.0\.0\.1|192\.168\.)/.test(location.hostname) && location.port === '3000';
 const SERVER = params.get('sunucu') || (YEREL ? '' : 'http://127.0.0.1:3000');
-const rel = (u) => String(u).replace(/^\//, '');   // sesi panel çalacaksa overlay sessiz kalır
+const rel = (u) => String(u).replace(/^\//, '');
+const KANAL = params.get('kanal') || (YEREL ? '' : 'madamcitir-9b3f844a43c1');   // sesi panel çalacaksa overlay sessiz kalır
 const $ = (id) => document.getElementById(id);
 const ETIKET = { tek: 'Tek kart', uc: '3 kart açılımı', profil: '3 kart + hesap yorumu' };
 let K = null, ws, curId = null, W = 768, H = 1344;
@@ -275,9 +276,9 @@ async function reading(r) {
     try {
       sesGrafigi();
       if (actx.state === 'suspended') await actx.resume();
-      audio.src = SERVER + r.audio;
+      audio.src = /^https?:/.test(r.audio) ? r.audio : SERVER + r.audio;
       await new Promise((ok, no) => { audio.onloadedmetadata = ok; audio.onerror = no; setTimeout(ok, 4000); });
-      altyaziHazirla(r.text, isFinite(audio.duration) ? audio.duration : tahmini);
+      altyaziHazirla(r.text, isFinite(audio.duration) ? audio.duration : (r.sure || tahmini));
       audio.onended = () => bitti(r.id);
       await audio.play();
       $('sesKilit').style.display = 'none';
@@ -291,7 +292,7 @@ async function reading(r) {
   sahteKonusma = true;
   setTimeout(() => { if (curId === r.id) { sahteKonusma = false; bitti(r.id); } }, tahmini * 1000);
 }
-function bitti(id) { if (ws && ws.readyState === 1) ws.send(JSON.stringify({ type: 'done', id })); }
+function bitti(id) { if (ws && ws.readyState === 1 && !KANAL) ws.send(JSON.stringify({ type: 'done', id })); }
 function idle() {
   yazi = null; sahteKonusma = false;
   try { audio.pause(); } catch {}
@@ -308,7 +309,20 @@ function renderState(s) {
   $('sira').style.display = n ? 'block' : 'none';
   $('sira').textContent = `Sırada: ${n}`;
 }
+function mesaj(m) {
+  if (m.tiers) renderState({ tiers: m.tiers, queue: new Array(m.q || 0).fill(0) });
+  if (m.type === 'state') renderState(m.state);
+  if (m.type === 'thinking') thinking(m.job, m.cards);
+  if (m.type === 'reading') reading(m.reading);
+  if (m.type === 'idle') idle();
+}
+function kanalBaglan() {
+  renderState({ tiers: { min: 1, uc: 99, profil: 299 }, queue: [] });
+  const es = new EventSource(`https://ntfy.sh/${KANAL}/sse`);
+  es.onmessage = (e) => { try { const d = JSON.parse(e.data); if (d.event === 'message' && d.message) mesaj(JSON.parse(d.message)); } catch {} };
+}
 function connect() {
+  if (KANAL) return kanalBaglan();
   ws = new WebSocket(SERVER ? SERVER.replace(/^http/, 'ws') : `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}`);
   ws.onopen = () => ws.send(JSON.stringify({ type: 'hello', speaks: true }));
   ws.onclose = () => setTimeout(connect, 2000);
